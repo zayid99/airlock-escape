@@ -1,0 +1,91 @@
+:root { --ol: #1d2030; --bar: 104px; }
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; background: #0f1119; overflow: hidden;
+  font-family: "Trebuchet MS", Verdana, sans-serif; color: #fff;
+  user-select: none; -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+body {
+  height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px;
+  --w: min(100vw, calc((100vh - var(--bar)) * 16 / 9));
+}
+@supports (height: 100dvh) {
+  body { height: 100dvh; --w: min(100vw, calc((100dvh - var(--bar)) * 16 / 9)); }
+}
+#stage {
+  position: relative; width: var(--w); aspect-ratio: 16 / 9;
+  font-size: calc(var(--w) / 60); overflow: hidden;
+  border: 4px solid var(--ol); border-radius: 12px; background: #000;
+}
+#scene, #cusvg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hs { cursor: pointer; }
+.hs:hover { filter: brightness(1.12); }
+
+#wallname {
+  position: absolute; top: 1.5%; left: 1.5%; padding: .2em .7em;
+  background: rgba(29, 32, 48, .8); border-radius: 1em;
+  font-weight: 900; font-size: .9em; letter-spacing: .08em; pointer-events: none;
+}
+.nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 6.5%; aspect-ratio: 1; padding: 0; border-radius: 50%;
+  background: #f5cf3a; border: .3em solid var(--ol); cursor: pointer;
+  box-shadow: 0 .25em 0 var(--ol);
+}
+.nav:active { transform: translateY(-46%); box-shadow: none; }
+.nav svg { width: 70%; height: 70%; display: block; margin: auto; }
+.nav path { fill: none; stroke: var(--ol); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+#left { left: 1.2%; }
+#right { right: 1.2%; }
+.hidden { display: none !important; }
+
+#closeup { position: absolute; inset: 0; display: none; background: #1a1d2a; }
+#closeup.show { display: block; }
+#cuclose {
+  position: absolute; top: 2%; right: 1.5%; width: 6%; aspect-ratio: 1;
+  border-radius: 50%; background: #e8453c; color: #fff; font-size: 1.6em;
+  font-weight: 900; border: .25em solid var(--ol); cursor: pointer; padding: 0;
+}
+
+#msg {
+  position: absolute; left: 50%; bottom: 4%; transform: translateX(-50%);
+  max-width: 80%; padding: .5em 1.1em; text-align: center;
+  background: rgba(29, 32, 48, .92); border: .2em solid #f5cf3a; border-radius: .8em;
+  font-weight: 700; font-size: 1.1em; opacity: 0; transition: opacity .25s;
+  pointer-events: none;
+}
+#msg.show { opacity: 1; }
+
+#screen {
+  position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+  background: rgba(15, 17, 25, .93); text-align: center;
+}
+#screen.show { display: flex; }
+#screen h1 { font-size: 3em; margin: 0 0 .3em; color: #f5cf3a; letter-spacing: .05em; }
+#screen p { font-size: 1.4em; margin: .3em 0 1em; }
+#screen button, #inspect {
+  font: inherit; font-weight: 900; cursor: pointer; color: var(--ol);
+  background: #5ef08a; border: .2em solid var(--ol); border-radius: .6em;
+  box-shadow: 0 .2em 0 var(--ol);
+}
+#screen button { font-size: 1.4em; padding: .4em 1.4em; }
+
+#bar {
+  width: var(--w); max-height: calc(var(--bar) - 10px); display: flex; align-items: center;
+  gap: 10px; padding: 6px 10px; background: #262b3d;
+  border: 4px solid var(--ol); border-radius: 12px;
+}
+#inv { display: flex; gap: 6px; flex: 0 0 auto; }
+.slot {
+  width: clamp(34px, calc((var(--w) - 160px) / 6 - 6px), 78px); aspect-ratio: 1; padding: 4px;
+  background: #3a4054; border: 3px solid var(--ol); border-radius: 10px;
+}
+button.slot { cursor: pointer; }
+.slot.sel { background: #f5cf3a; }
+.slot svg { width: 100%; height: 100%; display: block; }
+#invinfo { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+#invname { flex: 1 1 0; min-width: 0; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+#inspect { font-size: 13px; padding: 6px 10px; flex: 0 0 auto; }
+#inspect:disabled { opacity: .35; cursor: default; }
