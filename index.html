@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Airlock Escape</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <svg id="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet"></svg>
+  <div id="wallname"></div>
+  <button id="left" class="nav" aria-label="Turn left"><svg viewBox="0 0 40 40"><path d="M25 8 L12 20 L25 32"/></svg></button>
+  <button id="right" class="nav" aria-label="Turn right"><svg viewBox="0 0 40 40"><path d="M15 8 L28 20 L15 32"/></svg></button>
+  <div id="closeup">
+    <svg id="cusvg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet"></svg>
+    <button id="cuclose" aria-label="Close">&#10005;</button>
+  </div>
+  <div id="msg"></div>
+  <div id="screen"></div>
+</div>
+<div id="bar">
+  <div id="inv"></div>
+  <div id="invinfo"><span id="invname"></span><button id="inspect">INSPECT</button></div>
+</div>
+<script src="js/art.js"></script>
+<script src="js/inventory.js"></script>
+<script src="js/puzzles.js"></script>
+<script src="js/rooms.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

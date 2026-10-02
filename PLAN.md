@@ -90,7 +90,9 @@ Chain:
 
 ## Phases
 - [x] Plan
-- [ ] Phase 1: engine + Room 1
+- [x] Phase 1: engine + Room 1 (nav, close-ups, inventory select/use/inspect/combine,
+  save/load, wires/keypad/symbol widgets, basic room-clear screen).
+  Dev tip: open `index.html?new` to wipe the save.
 - [ ] Phase 2: Room 2
 - [ ] Phase 3: Room 3, title/end screens, sound, hints
 - [ ] Phase 4: polish / bug fixes
