@@ -29,22 +29,39 @@ function r1Card() {
 }
 
 const ROOMS = [{
-  name: 'CREW QUARTERS',
-  walls: ART.r1,
-  hs: {
-    bunk: () => G.msg('Neatly made bunks. Nothing hidden in the sheets.'),
-    sticker: () => G.open('sticker'),
-    porthole: () => G.msg('Just stars out there. No way out.'),
-    poster: () => G.open('poster'),
-    locker: () => G.msg('Welded shut. Only a big painted number.'),
-    fusebox: { look: () => G.open('fusebox'), use: { fuse: r1Fuse } },
-    keypad: () => G.open('keypad'),
-    storage: () => G.msg(F().wires ? 'Locked. Try the keypad beside it.' : 'Locked. The keypad beside it has no power.'),
-    keycard: () => { F().cardTaken = 1; G.take('keycard'); },
-    panel: () => { F().panel = 1; G.sfx('click'); G.msg('The loose panel slides aside!'); },
-    fuse: () => { F().fuseTaken = 1; G.take('fuse'); },
-    door: { look: () => G.open('door'), use: { keycard: r1Card } },
-    exit: () => G.complete()
+  name: 'CREW QUARTERS', W: 2800, H: 1400, spawn: [1400, 1050], art: ART.r1,
+  tasks: [
+    ['Find a fuse', () => F().fuseTaken],
+    ['Fix the wiring', () => F().wires],
+    ['Open the storage locker', () => F().locker],
+    ['Unlock the exit', () => F().door]
+  ],
+  // blocking rectangles [x, y, w, h]
+  walls: [[0, 0, 2800, 262], [0, 0, 64, 1400], [2736, 0, 64, 1400], [0, 1336, 2800, 64],
+    [80, 330, 380, 200], [80, 650, 380, 200], [1150, 600, 400, 180], [2300, 640, 200, 220]],
+  // stations: at = where the player stands, r = reach, act = handler
+  st: {
+    poster: { at: [740, 320], act: () => G.open('poster') },
+    storage: {
+      at: [1140, 320], act() {
+        if (!F().locker) G.open('keypad');
+        else if (!F().cardTaken) { F().cardTaken = 1; G.take('keycard'); }
+        else G.msg('The locker is empty now.');
+      }
+    },
+    door: { at: [1580, 320], act: { look: () => F().door ? G.complete() : G.open('door'), use: { keycard: r1Card } } },
+    lockers: { at: [2310, 320], r: 300, act: () => G.msg('Welded shut. Only big painted numbers.') },
+    sticker: { at: [300, 590], act: () => G.open('sticker') },
+    bunk: { at: [300, 900], act: () => G.msg('Neatly made bunk. Nothing hidden in the sheets.') },
+    table: { at: [1350, 840], act: () => G.msg('Two cold mugs and a dead tablet.') },
+    fusebox: { at: [2400, 925], act: { look: () => G.open('fusebox'), use: { fuse: r1Fuse } } },
+    panel: {
+      at: [500, 1080], act() {
+        if (!F().panel) { F().panel = 1; G.sfx('click'); G.msg('The loose floor panel slides aside!'); }
+        else if (!F().fuseTaken) { F().fuseTaken = 1; G.take('fuse'); }
+        else G.msg('Just an empty hole now.');
+      }
+    }
   },
   cu: {
     sticker: {

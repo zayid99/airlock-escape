@@ -1,11 +1,10 @@
-// Core: state, navigation, input, render, save/load, screens.
-const SAVE_KEY = 'airlockEscape.v1';
-const WALLS = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
+// Core: state, HUD, USE action, close-ups, save/load, screens.
+const SAVE_KEY = 'airlockEscape.v2';
 const $ = id => document.getElementById(id);
 let S;
 
 const G = {
-  fresh: () => ({ room: 0, wall: 0, view: null, inv: [], sel: null, f: {}, pz: {}, time: 0, times: [], screen: null }),
+  fresh: () => ({ room: 0, x: ROOMS[0].spawn[0], y: ROOMS[0].spawn[1], view: null, inv: [], sel: null, f: {}, pz: {}, time: 0, times: [], screen: null }),
   load() {
     try {
       if (/[?&]new\b/.test(location.search)) localStorage.removeItem(SAVE_KEY);
@@ -22,7 +21,6 @@ const G = {
   },
   open(v) { S.view = v; },
   close() { S.view = null; },
-  turn(d) { S.wall = (S.wall + d + 4) % 4; G.sfx('click'); },
   take(id) { if (!S.inv.includes(id)) S.inv.push(id); G.msg('Got: ' + ITEMS[id].name); G.sfx('pickup'); },
   drop(id) { S.inv = S.inv.filter(x => x !== id); if (S.sel === id) S.sel = null; },
   sfx() { /* sound effects arrive in Phase 3 */ },
@@ -36,16 +34,26 @@ const G = {
     G.msgTimer = setTimeout(() => el.classList.remove('show'), 2800);
   },
 
-  // Click on a hotspot. code = "id" or "id:arg".
-  hit(code, inCu) {
+  // USE the station the player is standing at. A held item the station
+  // accepts is used automatically (the selected one first).
+  use() {
+    if (S.view || S.screen || !P.near) return;
+    let h = G.room().st[P.near].act;
+    if (typeof h === 'function') h = { look: h };
+    const u = h.use || {};
+    const it = u[S.sel] ? S.sel : S.inv.find(k => u[k]);
+    if (it) { S.sel = null; u[it](); }
+    else if (h.look) h.look();
+    G.save(); G.render();
+  },
+
+  // Click inside a close-up panel. code = "id" or "id:arg".
+  hit(code) {
     const i = code.indexOf(':'), id = i < 0 ? code : code.slice(0, i), arg = i < 0 ? null : code.slice(i + 1);
-    const set = inCu ? (G.cu() || {}).hs || {} : G.room().hs;
-    let h = set[id];
+    let h = ((G.cu() || {}).hs || {})[id];
     if (!h) return;
     if (typeof h === 'function') h = { look: h };
-    const it = S.sel;
-    if (it && h.use && h.use[it]) { S.sel = null; h.use[it](arg); }
-    else if (it && !inCu) { S.sel = null; G.msg("That doesn't work here."); G.sfx('error'); }
+    if (S.sel && h.use && h.use[S.sel]) { const it = S.sel; S.sel = null; h.use[it](arg); }
     else if (h.look) h.look(arg);
     G.save(); G.render();
   },
@@ -57,9 +65,9 @@ const G = {
     G.sfx('success');
   },
   next() {
-    if (ROOMS[S.room + 1]) {
-      Object.assign(S, { room: S.room + 1, wall: 0, view: null, inv: [], sel: null, f: {}, pz: {}, time: 0, screen: null });
-    } else S.screen = 'soon';
+    const n = ROOMS[S.room + 1];
+    if (n) Object.assign(S, { room: S.room + 1, x: n.spawn[0], y: n.spawn[1], view: null, inv: [], sel: null, f: {}, pz: {}, time: 0, screen: null });
+    else S.screen = 'soon';
   },
 
   fmt(ms) {
@@ -67,13 +75,20 @@ const G = {
     return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   },
 
+  renderHUD() {
+    const tasks = G.room().tasks, done = tasks.filter(t => t[1]()).length;
+    $('taskfill').style.width = (done / tasks.length * 100) + '%';
+    $('tasks').innerHTML = `<b>${G.room().name}</b>` +
+      tasks.map(([n, d]) => `<div class="${d() ? 'done' : ''}">${d() ? '&#10003;' : '&#9675;'} ${n}</div>`).join('');
+  },
+
   render() {
     const room = G.room(), cu = G.cu();
-    $('scene').innerHTML = room.walls[S.wall]();
-    $('wallname').textContent = room.name + ' · ' + WALLS[S.wall];
+    $('map').innerHTML = room.art.map();
+    $('props').innerHTML = room.art.props().map(p => `<g data-y="${p.y}">${p.svg}</g>`).join('') + '<g id="player"></g>';
+    P.dirty = true; P.lastStep = null;
     $('closeup').classList.toggle('show', !!cu);
     $('cusvg').innerHTML = cu ? cu.draw() : '';
-    for (const n of ['left', 'right']) $(n).classList.toggle('hidden', !!cu);
     const sc = $('screen');
     sc.classList.toggle('show', !!S.screen);
     if (S.screen === 'clear') {
@@ -81,7 +96,9 @@ const G = {
     } else if (S.screen === 'soon') {
       sc.innerHTML = '<div><h1>MORE ROOMS SOON</h1><p>Room 2 arrives in the next phase.</p></div>';
     } else sc.innerHTML = '';
+    G.renderHUD();
     INV.render();
+    P.draw();
   },
 
   init() {
@@ -89,11 +106,11 @@ const G = {
     $('stage').addEventListener('click', e => {
       const act = e.target.closest('[data-act]');
       if (act) { if (act.dataset.act === 'next') G.next(); G.save(); G.render(); return; }
-      const el = e.target.closest('[data-hs]');
-      if (el) G.hit(el.dataset.hs, !!el.closest('#closeup'));
+      const el = e.target.closest('#closeup [data-hs]');
+      if (el) G.hit(el.dataset.hs);
     });
-    $('left').onclick = () => { G.turn(-1); G.save(); G.render(); };
-    $('right').onclick = () => { G.turn(1); G.save(); G.render(); };
+    $('use').onclick = () => G.use();
+    $('taskbar').onclick = () => $('hud').classList.toggle('min');
     $('cuclose').onclick = () => { G.close(); G.save(); G.render(); };
     $('inv').addEventListener('click', e => {
       const b = e.target.closest('[data-item]');
@@ -101,17 +118,13 @@ const G = {
     });
     $('inspect').onclick = () => { if (S.sel) { G.open('item:' + S.sel); G.save(); G.render(); } };
     document.addEventListener('keydown', e => {
-      if (S.screen) return;
-      if (e.key === 'Escape' && S.view) G.close();
-      else if (e.key === 'ArrowLeft' && !S.view) G.turn(-1);
-      else if (e.key === 'ArrowRight' && !S.view) G.turn(1);
-      else return;
-      G.save(); G.render();
+      if (e.key === 'Escape' && S.view) { G.close(); G.save(); G.render(); }
     });
     setInterval(() => {
       if (!S.screen && document.visibilityState === 'visible') { S.time += 1000; G.save(); }
     }, 1000);
     G.render();
+    P.init();
   }
 };
 

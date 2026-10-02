@@ -23,22 +23,43 @@ body {
 .hs { cursor: pointer; }
 .hs:hover { filter: brightness(1.12); }
 
-#wallname {
-  position: absolute; top: 1.5%; left: 1.5%; padding: .2em .7em;
-  background: rgba(29, 32, 48, .8); border-radius: 1em;
-  font-weight: 900; font-size: .9em; letter-spacing: .08em; pointer-events: none;
+#scene { touch-action: none; }
+.st.near { filter: drop-shadow(0 0 4px #f5cf3a) drop-shadow(0 0 4px #f5cf3a); }
+
+#hud { position: absolute; top: 2%; left: 1.5%; width: 30%; pointer-events: none; }
+#taskbar {
+  position: relative; height: 1.8em; background: #3a4054; overflow: hidden; pointer-events: auto; cursor: pointer;
+  border: .2em solid var(--ol); border-radius: .4em;
 }
-.nav {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  width: 6.5%; aspect-ratio: 1; padding: 0; border-radius: 50%;
-  background: #f5cf3a; border: .3em solid var(--ol); cursor: pointer;
-  box-shadow: 0 .25em 0 var(--ol);
+#taskfill { position: absolute; inset: 0 auto 0 0; width: 0; background: #3fbf5a; transition: width .4s; }
+#taskbar span {
+  position: relative; display: block; line-height: 1.5em; padding-left: .5em;
+  font-weight: 900; font-size: .85em; letter-spacing: .06em; text-shadow: 0 .1em 0 var(--ol);
 }
-.nav:active { transform: translateY(-46%); box-shadow: none; }
-.nav svg { width: 70%; height: 70%; display: block; margin: auto; }
-.nav path { fill: none; stroke: var(--ol); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
-#left { left: 1.2%; }
-#right { right: 1.2%; }
+#tasks {
+  width: fit-content; margin-top: .4em; padding: .4em .7em; background: rgba(29, 32, 48, .78);
+  border-radius: .4em; font-size: .9em; font-weight: 700; line-height: 1.5;
+}
+#hud.min #tasks { display: none; }
+#tasks b { color: #f5cf3a; letter-spacing: .06em; }
+#tasks .done { color: #5ef08a; }
+#use {
+  position: absolute; right: 2%; bottom: 4%; width: 11%; aspect-ratio: 1; padding: 0;
+  border-radius: 50%; border: .3em solid var(--ol); background: #8a93a6; color: var(--ol);
+  font: inherit; font-size: 1.6em; font-weight: 900; cursor: pointer; opacity: .55;
+  box-shadow: 0 .2em 0 var(--ol);
+}
+#use.on { background: #f5cf3a; opacity: 1; }
+#joy {
+  display: none; position: absolute; left: 3%; bottom: 5%; width: 18%; aspect-ratio: 1;
+  border-radius: 50%; background: rgba(29, 32, 48, .45); border: .25em solid rgba(255, 255, 255, .35);
+  touch-action: none;
+}
+#knob {
+  position: absolute; left: 30%; top: 30%; width: 40%; height: 40%; border-radius: 50%;
+  background: #f5cf3a; border: .25em solid var(--ol); pointer-events: none;
+}
+@media (pointer: coarse) { #joy { display: block; } }
 .hidden { display: none !important; }
 
 #closeup { position: absolute; inset: 0; display: none; background: #1a1d2a; }

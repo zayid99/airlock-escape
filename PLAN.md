@@ -75,8 +75,10 @@ Tasks (same chain and solutions as before):
 ## Phases
 - [x] Plan v1, Phase 1 (point-and-click engine + Room 1; puzzle widgets, inventory,
   save are kept and reused)
-- [ ] Phase 1b: top-down engine (character, movement, collision, camera, joystick,
-  USE button, task list, progress bar) + Room 1 rebuilt as a walkable map
+- [x] Phase 1b: top-down engine (character, movement, collision, camera, joystick,
+  USE button, task list, progress bar) + Room 1 rebuilt as a walkable map.
+  Held items are used automatically with USE. Tap the task bar to hide/show tasks.
+  Dev tip: open `index.html?new` once to wipe the save.
 - [ ] Phase 2: Room 2
 - [ ] Phase 3: Room 3, map overlay, settings, hints, title/end screens, sound
 - [ ] Phase 4: polish / bug fixes

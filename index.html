@@ -8,10 +8,13 @@
 </head>
 <body>
 <div id="stage">
-  <svg id="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet"></svg>
-  <div id="wallname"></div>
-  <button id="left" class="nav" aria-label="Turn left"><svg viewBox="0 0 40 40"><path d="M25 8 L12 20 L25 32"/></svg></button>
-  <button id="right" class="nav" aria-label="Turn right"><svg viewBox="0 0 40 40"><path d="M15 8 L28 20 L15 32"/></svg></button>
+  <svg id="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet"><g id="map"></g><g id="props"></g></svg>
+  <div id="hud">
+    <div id="taskbar" title="Show/hide tasks"><div id="taskfill"></div><span>TASKS COMPLETED</span></div>
+    <div id="tasks"></div>
+  </div>
+  <div id="joy"><div id="knob"></div></div>
+  <button id="use" tabindex="-1">USE</button>
   <div id="closeup">
     <svg id="cusvg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet"></svg>
     <button id="cuclose" aria-label="Close">&#10005;</button>
@@ -27,6 +30,7 @@
 <script src="js/inventory.js"></script>
 <script src="js/puzzles.js"></script>
 <script src="js/rooms.js"></script>
+<script src="js/player.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>

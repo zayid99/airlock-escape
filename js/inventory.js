@@ -35,8 +35,8 @@ const INV = {
     }
     document.getElementById('inv').innerHTML = h;
     document.getElementById('invname').textContent = S.sel
-      ? ITEMS[S.sel].name + ': tap a target to use it'
-      : S.inv.length ? 'Tap an item to select it' : '';
+      ? ITEMS[S.sel].name + ' selected'
+      : S.inv.length ? 'Items are used automatically with USE' : '';
     document.getElementById('inspect').disabled = !S.sel;
   },
   click(id) {

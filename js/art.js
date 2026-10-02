@@ -1,4 +1,4 @@
-// SVG drawing helpers and wall art. All art is original, drawn in code.
+// SVG drawing helpers, player robot and room maps. All art is original, drawn in code.
 const OL = '#1d2030';
 const C = {
   red: '#e8453c', redD: '#a82a24', blue: '#3d6fe0', blueD: '#2747a0',
@@ -6,7 +6,8 @@ const C = {
   purple: '#9b59d0', purpleD: '#6c3a99',
   wall: '#9aa7b8', wallD: '#7c899c', floor: '#565e70', floorD: '#454b5c',
   metal: '#c8d0dc', metalD: '#97a2b3', panel: '#5a6378', dark: '#2c3142',
-  screen: '#7fe3ff', on: '#5ef08a', white: '#f2f5fa', ink: '#2c3142'
+  screen: '#7fe3ff', on: '#5ef08a', white: '#f2f5fa', ink: '#2c3142',
+  bot: '#f08c2e', botD: '#c0661a', cap: '#2c3142'
 };
 
 const A = {
@@ -41,118 +42,145 @@ const A = {
     return '';
   },
   cuBg: () => A.r(0, 0, 1600, 900, '#1a1d2a', 0, 0),
-  // room shell: ceiling, wall panels, baseboard, floor
-  bg(wall = C.wall, wallD = C.wallD) {
-    let o = A.r(-10, -10, 1620, 120, '#3b4258', 0, 0);
-    for (const x of [470, 1060]) o += A.r(x, 30, 300, 26, '#fff6c8', 13, 5);
-    o += A.r(-10, 100, 1620, 600, wall, 0, 0) + A.r(-10, 100, 1620, 26, wallD, 0, 0);
-    for (const x of [400, 800, 1200]) o += A.line(x, 126, x, 680, wallD, 6);
-    o += A.line(-10, 103, 1610, 103, OL, 6);
-    o += A.r(-10, 680, 1620, 30, '#4a5168', 0, 6) + A.r(-10, 710, 1620, 200, C.floor, 0, 0);
-    for (const x of [200, 600, 1000, 1400]) o += A.line(x, 710, x + (x - 800) * 0.4, 900, C.floorD, 6);
-    o += A.line(-10, 790, 1610, 790, C.floorD, 6);
+  // interactive station group: glows when the player is near
+  g: (id, inner) => `<g class="st" data-st="${id}">${inner}</g>`,
+
+  // Room shell seen from above: tiled floor, back wall face, dark wall caps.
+  room(W, H, c) {
+    let o = `<defs><pattern id="tile" width="100" height="100" patternUnits="userSpaceOnUse">` +
+      `<rect width="100" height="100" fill="${c.floor}"/><path d="M0 0H100M0 0V100" stroke="${c.line}" stroke-width="5" fill="none"/></pattern></defs>`;
+    o += `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#tile)"/>`;
+    o += A.r(0, 0, W, 250, c.wall, 0, 0);
+    for (let x = 200; x < W; x += 400) o += A.line(x, 40, x, 225, c.wallD, 6);
+    o += A.r(0, 225, W, 25, c.wallD, 0, 0) + A.line(0, 250, W, 250, OL, 6);
+    o += A.r(60, 253, W - 120, 26, '#000', 0, 0, 'fill-opacity=".12"');
+    o += A.r(-10, -10, W + 20, 46, C.cap, 0, 6) + A.r(-10, -10, 70, H + 20, C.cap, 0, 6);
+    o += A.r(W - 60, -10, 70, H + 20, C.cap, 0, 6) + A.r(-10, H - 60, W + 20, 70, C.cap, 0, 6);
     return o;
   },
-  door(open, hsClosed, hsOpen) {
-    let o = A.r(690, 110, 480, 590, C.panel, 16) + A.r(860, 26, 140, 60, '#2fae57', 10) + A.t(930, 57, 36, 'EXIT');
-    if (open) {
-      const d = A.r(720, 140, 420, 560, '#0c0e16', 6) + A.p('M760 700 L1100 700 L1030 520 L830 520Z', '#262c44', 0) +
-        A.r(880, 170, 100, 16, C.on, 8, 0);
-      return o + A.hs(hsOpen, d) + A.r(706, 140, 26, 560, '#c3ccd9', 4) + A.r(1128, 140, 26, 560, '#c3ccd9', 4);
+
+  // Player: small round maintenance robot. Feet at (0,0), facing right.
+  // step: -1 idle, 0..3 walk frames.
+  bot(step) {
+    const lift = step === 0 ? [-10, 0] : step === 2 ? [0, -10] : [0, 0], bob = step % 2 ? -5 : 0;
+    let o = '<ellipse cx="0" cy="2" rx="44" ry="13" fill="#000" fill-opacity=".22"/>';
+    o += A.r(-30, -34 + lift[0], 22, 34, C.botD, 8, 6) + A.r(8, -34 + lift[1], 22, 34, C.botD, 8, 6);
+    o += `<g transform="translate(0 ${bob})">`;
+    o += A.r(-58, -78, 20, 32, C.botD, 9, 5);
+    o += A.line(0, -112, 0, -134, OL, 6) + A.c(0, -140, 9, C.yellow, 5);
+    o += '<clipPath id="botc"><rect x="-46" y="-116" width="92" height="90" rx="34"/></clipPath><g clip-path="url(#botc)">';
+    o += A.r(-46, -116, 92, 90, C.bot, 0, 0) + A.r(-46, -48, 92, 30, C.botD, 0, 0) + '</g>';
+    o += A.r(-46, -116, 92, 90, 'none', 34, 6);
+    o += A.r(-4, -102, 46, 38, OL, 12, 0) + A.c(10, -83, 6, C.screen, 0) + A.c(28, -83, 6, C.screen, 0);
+    o += A.c(-22, -60, 7, C.yellow, 4) + '</g>';
+    return o;
+  },
+
+  doorTop(open, x, sign = 'EXIT') {
+    let o = A.r(x, 36, 260, 214, C.panel, 10) + A.r(x + 75, -2, 110, 40, '#2fae57', 8) + A.t(x + 130, 18, 26, sign);
+    if (open) return o + A.r(x + 18, 56, 224, 194, '#0c0e16', 4, 5) + A.r(x + 90, 70, 80, 12, C.on, 6, 0) +
+      A.r(x + 10, 56, 16, 194, '#c3ccd9', 3, 4) + A.r(x + 234, 56, 16, 194, '#c3ccd9', 3, 4);
+    for (const dx of [18, 130]) {
+      const hx = x + dx;
+      o += A.r(hx, 56, 112, 194, '#c3ccd9', 4, 5) + A.r(hx + 27, 80, 58, 70, C.screen, 10, 5);
+      o += `<clipPath id="hz${hx}"><rect x="${hx + 6}" y="200" width="100" height="34"/></clipPath>`;
+      o += A.r(hx + 6, 200, 100, 34, C.yellow, 0, 0) + `<g clip-path="url(#hz${hx})">`;
+      for (let i = 0; i < 3; i++) o += A.p(`M${hx + 6 + i * 40} 234 L${hx + 22 + i * 40} 234 L${hx + 42 + i * 40} 200 L${hx + 26 + i * 40} 200Z`, OL, 0);
+      o += '</g>' + A.r(hx + 6, 200, 100, 34, 'none', 0, 4);
     }
-    let d = '';
-    for (const x of [720, 930]) {
-      d += A.r(x, 140, 210, 560, '#c3ccd9', 6) + A.r(x + 50, 210, 110, 170, C.screen, 14);
-      d += `<clipPath id="hz${x}"><rect x="${x + 12}" y="616" width="186" height="60"/></clipPath>`;
-      d += A.r(x + 12, 616, 186, 60, C.yellow, 4, 0) + `<g clip-path="url(#hz${x})">`;
-      for (let i = 0; i < 4; i++) d += A.p(`M${x + 12 + i * 50} 676 L${x + 37 + i * 50} 676 L${x + 62 + i * 50} 616 L${x + 37 + i * 50} 616Z`, OL, 0);
-      d += '</g>' + A.r(x + 12, 616, 186, 60, 'none', 4, 5);
-    }
-    return o + A.hs(hsClosed, d);
+    return o;
   }
 };
 
 const ART = {};
 
-// ---------- Room 1: Crew Quarters ----------
-ART.r1 = [
-  // North: bunk, wiring sticker, porthole
-  () => {
-    let bunk = '';
-    for (const y of [280, 550]) {
-      bunk += A.r(170, y + 50, 600, 36, C.metalD, 8) + A.r(210, y, 500, 56, C.white, 22);
-      bunk += A.r(340, y - 4, 370, 64, y < 400 ? C.blue : C.green, 22) + A.r(228, y - 16, 100, 46, '#fff', 20);
-    }
-    bunk += A.r(160, 170, 40, 530, C.metal, 8) + A.r(740, 170, 40, 530, C.metal, 8);
-    let stick = A.r(830, 330, 130, 96, '#fdfdf2', 10, 5);
-    ['red', 'blue', 'yellow', 'green'].forEach((c, i) => stick += A.c(856 + i * 26, 362, 9, C[c], 3));
-    stick += A.line(850, 400, 940, 400, '#9aa', 5);
-    let port = A.c(1250, 360, 150, C.metal, 8);
-    for (let i = 0; i < 8; i++) {
-      const a = i * Math.PI / 4;
-      port += A.c(1250 + 132 * Math.cos(a), 360 + 132 * Math.sin(a), 8, C.metalD, 4);
-    }
-    port += A.c(1250, 360, 112, '#141a33', 7);
-    for (const [x, y] of [[1190, 300], [1230, 420], [1300, 290], [1170, 380], [1320, 340]]) port += A.c(x, y, 4, '#fff', 0);
-    port += A.c(1290, 400, 36, C.purple, 5) + A.p('M1245 410 Q1290 380 1335 392', 'none', 5);
-    return A.bg() + A.hs('bunk', bunk) + A.hs('sticker', stick, A.pad(800, 300, 190, 156)) + A.hs('porthole', port);
-  },
-  // East: star poster, numbered crew lockers
-  () => {
-    let post = A.r(110, 170, 460, 320, '#24305a', 16) + A.r(132, 192, 416, 276, 'none', 10, 4);
-    ['yellow', 'red', 'blue', 'green'].forEach((c, i) => post += A.star(190 + i * 100, 330, 40, C[c], 5));
-    let lk = '';
-    [['blue', 2], ['green', 9], ['red', 7], ['yellow', 4]].forEach(([c, n], i) => {
-      const x = 680 + i * 210;
-      lk += A.r(x, 150, 190, 540, C[c], 12, 0) + A.r(x + 150, 156, 34, 528, C[c + 'D'], 0, 0) + A.r(x, 150, 190, 540, 'none', 12);
-      for (const y of [195, 220, 245]) lk += A.line(x + 40, y, x + 140, y, OL, 6);
-      lk += A.t(x + 95, 400, 150, n, '#fff', 12) + A.r(x + 20, 470, 22, 80, C.metal, 8);
-    });
-    return A.bg() + A.hs('poster', post) + A.hs('locker', lk);
-  },
-  // South: fuse box, keypad, storage locker
-  () => {
+// ---------- Room 1: Crew Quarters (2800 x 1400) ----------
+ART.r1 = {
+  // wall items are shifted right with translate() so the HUD never covers them
+  map() {
     const f = S.f;
-    let fb = A.r(320, 100, 40, 110, C.metalD, 0) + A.r(180, 200, 340, 340, C.metal, 16) + A.r(205, 225, 290, 290, 'none', 10, 4);
-    fb += A.p('M350 280 L300 380 L345 380 L320 470 L405 350 L358 350 L385 280Z', C.yellow, 6);
-    fb += A.c(460, 255, 16, f.wires ? C.on : f.fuse ? C.yellow : C.red, 4);
-    const lit = f.locker ? C.on : f.wires ? C.screen : '#14161f';
-    let kp = A.r(580, 320, 140, 200, C.panel, 14) + A.r(600, 340, 100, 50, lit, 6, 4);
-    for (let i = 0; i < 9; i++) kp += A.r(606 + (i % 3) * 30, 404 + Math.floor(i / 3) * 34, 24, 24, C.metal, 5, 3);
+    let o = A.room(2800, 1400, { floor: '#a9b3c4', line: '#97a1b3', wall: '#6b7790', wallD: '#55607a' });
+    // poster: star order clue
+    let post = A.r(110, 55, 300, 160, '#24305a', 14) + A.r(124, 69, 272, 132, 'none', 8, 4);
+    ['yellow', 'red', 'blue', 'green'].forEach((c, i) => post += A.star(170 + i * 60, 135, 24, C[c], 5));
+    o += A.r(120, 36, 26, 214, C.metalD, 4, 5) + A.r(170, 36, 26, 214, C.metalD, 4, 5) + A.r(260, 80, 200, 110, '#3a4054', 12, 5);
+    for (const y of [105, 135, 165]) o += A.line(285, y, 435, y, OL, 8);
+    o += `<g transform="translate(480 0)">${A.g('poster', post)}</g>`;
+    // storage locker + keypad
     let st;
     if (!f.locker) {
-      st = A.r(760, 130, 420, 560, '#8e9bb0', 16) + A.line(970, 140, 970, 680, OL, 6);
-      st += A.r(930, 380, 18, 90, C.metal, 8, 5) + A.r(992, 380, 18, 90, C.metal, 8, 5);
-      for (const y of [190, 215, 240]) st += A.line(800, y, 930, y, OL, 6) + A.line(1010, y, 1140, y, OL, 6);
-      st = A.hs('storage', st);
+      st = A.r(520, 40, 280, 210, '#8e9bb0', 12) + A.line(660, 46, 660, 244, OL, 5);
+      st += A.r(640, 120, 12, 50, C.metal, 6, 4) + A.r(668, 120, 12, 50, C.metal, 6, 4);
+      for (const y of [70, 90]) st += A.line(550, y, 620, y, OL, 5) + A.line(700, y, 770, y, OL, 5);
     } else {
-      st = A.r(760, 130, 420, 560, '#2a3042', 16) + A.r(780, 330, 380, 20, C.metalD, 4, 5) + A.r(780, 510, 380, 20, C.metalD, 4, 5);
-      st += A.r(820, 450, 90, 60, C.red, 10, 5) + A.r(1030, 260, 70, 70, C.green, 10, 5);
-      if (!f.cardTaken) st += A.hs('keycard', A.r(900, 270, 110, 60, C.white, 8, 5) + A.r(903, 282, 104, 12, C.blue, 0, 0) + A.r(912, 304, 22, 16, C.yellow, 3, 3), A.pad(870, 240, 170, 110));
-      st += A.p('M1180 130 L1300 170 L1300 650 L1180 690Z', '#8e9bb0');
+      st = A.r(520, 40, 280, 210, '#2a3042', 12) + A.r(536, 150, 248, 14, C.metalD, 4, 4);
+      st += A.r(700, 100, 50, 50, C.green, 8, 4) + A.r(560, 190, 70, 40, C.red, 8, 4);
+      if (!f.cardTaken) st += A.r(570, 112, 90, 40, C.white, 6, 4) + A.r(572, 120, 86, 8, C.blue, 0, 0);
+      st += A.p('M520 40 L455 64 L455 262 L520 250Z', '#8e9bb0', 5);
     }
-    return A.bg() + A.hs('fusebox', fb) + A.hs('keypad', kp, A.pad(570, 310, 160, 220)) + st;
-  },
-  // West: loose wall panel, exit door
-  () => {
-    const f = S.f;
+    const lit = f.locker ? C.on : f.wires ? C.screen : '#14161f';
+    st += A.r(820, 100, 80, 110, C.panel, 10, 5) + A.r(832, 112, 56, 28, lit, 5, 4);
+    for (let i = 0; i < 6; i++) st += A.r(834 + (i % 3) * 18, 152 + Math.floor(i / 3) * 22, 14, 14, C.metal, 3, 3);
+    o += `<g transform="translate(440 0)">${A.g('storage', st)}</g>`;
+    // exit door + symbol pad
+    let dp = A.doorTop(f.door, 1050) + A.r(1325, 90, 90, 120, C.panel, 10, 5);
+    dp += A.c(1400, 104, 7, f.door ? C.on : f.cardIn ? C.yellow : C.red, 3) + A.r(1338, 98, 46, 12, '#11131c', 4, 3);
+    ['tri', 'circ', 'sq', 'star'].forEach((k, i) => {
+      const x = 1350 + (i % 2) * 40, y = 140 + Math.floor(i / 2) * 40;
+      dp += A.r(x - 15, y - 15, 30, 30, C.metal, 5, 3) + A.sym(k, x, y, 8, C.ink, 2);
+    });
+    o += `<g transform="translate(400 0)">${A.g('door', dp)}</g>`;
+    // porthole (decor)
+    o += '<g transform="translate(390 0)">' + A.c(1500, 130, 62, C.metal, 7) + A.c(1500, 130, 46, '#141a33', 6) + A.c(1515, 145, 14, C.purple, 4);
+    for (const [x, y] of [[1480, 110], [1490, 155], [1520, 108]]) o += A.c(x, y, 3, '#fff', 0);
+    o += '</g>';
+    // numbered crew lockers
+    let lk = '';
+    [['blue', 2], ['green', 9], ['red', 7], ['yellow', 4]].forEach(([c, n], i) => {
+      const x = 1620 + i * 170;
+      lk += A.r(x, 40, 150, 210, C[c], 10, 0) + A.r(x + 118, 44, 28, 202, C[c + 'D'], 0, 0) + A.r(x, 40, 150, 210, 'none', 10, 5);
+      lk += A.line(x + 30, 62, x + 110, 62, OL, 5) + A.line(x + 30, 80, x + 110, 80, OL, 5);
+      lk += A.t(x + 70, 160, 96, n, '#fff', 10) + A.r(x + 14, 140, 14, 50, C.metal, 6, 4);
+    });
+    o += `<g transform="translate(360 0)">${A.g('lockers', lk)}</g>`;
+    // loose floor panel (hidden fuse)
     let pn;
     if (!f.panel) {
-      pn = A.r(140, 370, 320, 270, C.metal, 10);
-      for (const y of [420, 450, 480]) pn += A.line(200, y, 400, y, C.metalD, 8);
-      pn += A.c(168, 396, 10, C.metalD, 4) + A.c(432, 396, 10, C.metalD, 4) + A.c(168, 614, 10, C.metalD, 4) + A.c(432, 614, 5, OL, 0);
-      pn = A.hs('panel', `<g transform="rotate(-3 300 505)">${pn}</g>`);
+      pn = A.r(620, 1120, 200, 110, C.metal, 10);
+      for (const x of [660, 700, 740, 780]) pn += A.line(x, 1145, x, 1205, C.metalD, 8);
+      pn += A.c(636, 1136, 6, C.metalD, 3) + A.c(804, 1136, 6, C.metalD, 3) + A.c(636, 1214, 6, C.metalD, 3) + A.c(804, 1214, 3, OL, 0);
+      pn = `<g transform="rotate(-4 720 1175)">${pn}</g>`;
     } else {
-      pn = A.r(140, 370, 320, 270, '#151826', 10) + A.r(150, 380, 300, 34, '#0b0d15', 4, 0);
-      if (!f.fuseTaken) pn += A.hs('fuse', A.r(255, 540, 100, 44, '#bfe9ff', 14, 5) + A.r(236, 536, 30, 52, C.yellow, 6, 5) + A.r(344, 536, 30, 52, C.yellow, 6, 5), A.pad(200, 500, 210, 120));
-      pn += A.p('M110 760 L470 760 L510 830 L70 830Z', C.metal);
+      pn = A.r(620, 1120, 200, 110, '#151826', 10) + A.r(626, 1126, 188, 18, '#0b0d15', 4, 0);
+      if (!f.fuseTaken) pn += A.r(684, 1160, 72, 30, '#bfe9ff', 12, 4) + A.r(670, 1156, 20, 38, C.yellow, 4, 4) + A.r(750, 1156, 20, 38, C.yellow, 4, 4);
+      pn += A.r(850, 1130, 200, 110, C.metal, 10);
+      for (const x of [890, 930, 970, 1010]) pn += A.line(x, 1155, x, 1215, C.metalD, 8);
     }
-    let dp = A.r(1220, 300, 180, 240, C.panel, 14) + A.r(1250, 330, 100, 26, '#11131c', 6, 5);
-    dp += A.c(1375, 343, 11, f.door ? C.on : f.cardIn ? C.yellow : C.red, 3);
-    ['tri', 'circ', 'sq', 'star'].forEach((k, i) => {
-      const x = 1275 + (i % 2) * 70, y = 410 + Math.floor(i / 2) * 70;
-      dp += A.r(x - 26, y - 26, 52, 52, C.metal, 8, 4) + A.sym(k, x, y, 13, C.ink, 3);
-    });
-    return A.bg() + pn + A.door(f.door, 'door', 'exit') + A.hs('door', dp);
+    return o + `<g transform="translate(0 -100)">${A.g('panel', pn)}</g>`;
+  },
+
+  // free-standing furniture, y-sorted with the player: { y: base line, svg }
+  props() {
+    const f = S.f, out = [];
+    const bunk = (y0, id, col, stick) => {
+      let o = A.r(80, y0, 380, 200, C.metalD, 14) + A.r(96, y0 + 14, 348, 150, C.white, 18);
+      o += A.r(210, y0 + 10, 240, 158, col, 18) + A.r(112, y0 + 34, 80, 104, '#fff', 20);
+      o += A.line(92, y0 + 180, 448, y0 + 180, OL, 5);
+      if (stick) {
+        o += A.r(360, y0 + 166, 84, 44, '#fdfdf2', 6, 4);
+        ['red', 'blue', 'yellow', 'green'].forEach((c, i) => o += A.c(374 + i * 19, y0 + 188, 6, C[c], 2));
+      }
+      out.push({ y: y0 + 200, svg: A.g(id, o) });
+    };
+    bunk(330, 'sticker', C.blue, true);
+    bunk(650, 'bunk', C.green, false);
+    let t = A.r(900, 690, 400, 90, '#9c6633', 14) + A.r(900, 600, 400, 140, '#d39a5a', 16);
+    t += A.c(980, 650, 22, C.red, 5) + A.c(1220, 690, 22, C.blue, 5) + A.r(1060, 632, 90, 60, C.dark, 8, 5) + A.r(1070, 642, 70, 40, C.screen, 4, 0);
+    out.push({ y: 780, svg: `<g transform="translate(250 0)">${A.g('table', t)}</g>` });
+    let fb = A.r(1900, 640, 200, 80, '#dfe5ee', 12) + A.r(1900, 700, 200, 160, C.metal, 12);
+    fb += A.p('M1995 720 L1965 790 L1992 790 L1978 845 L2030 770 L2002 770 L2018 720Z', C.yellow, 5);
+    fb += A.c(2070, 730, 11, f.wires ? C.on : f.fuse ? C.yellow : C.red, 4) + A.r(1925, 660, 150, 30, C.metalD, 8, 4);
+    out.push({ y: 860, svg: `<g transform="translate(400 0)">${A.g('fusebox', fb)}</g>` });
+    return out;
   }
-];
+};
